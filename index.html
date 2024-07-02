@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>2 Truths 1 Lie Game</title>
+        <link
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+            rel="stylesheet"/>
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(45deg, #2c3e50, #3498db);
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            .container {
+                background-color: rgba(255, 255, 255, 0.9);
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+                max-width: 800px;
+                width: 100%;
+                text-align: center;
+            }
+
+            h1 {
+                font-size: 3rem;
+                color: #2c3e50;
+                margin-bottom: 20px;
+            }
+
+            .btn-danger,
+            .btn-info,
+            .btn-primary,
+            .btn-success {
+                margin-top: 10px;
+                background-color: #3498db;
+                border-color: #3498db;
+                text-align: center;
+            }
+
+            .btn-danger:hover,
+            .btn-info:hover,
+            .btn-primary:hover,
+            .btn-success:hover {
+                background-color: #2980b9;
+                border-color: #2980b9;
+            }
+
+            .card {
+                background-color: #fff;
+                border: 2px solid #ccc;
+                padding: 20px;
+                margin: 10px;
+                cursor: pointer;
+                transition: transform 0.3s, box-shadow 0.3s;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                font-size: 1.2rem;
+                flex: 1;
+            }
+
+            .card:hover {
+                transform: scale(1.05);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .disabled {
+                opacity: 0.5;
+                pointer-events: none;
+            }
+
+            #result {
+                margin-top: 20px;
+                font-size: 1.5rem;
+                color: #2ecc71;
+            }
+
+            .input-field {
+                margin-bottom: 20px;
+                text-align: left;
+                background-color: rgba(255, 255, 255, 0.7);
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .input-field label {
+                font-weight: bold;
+                color: #2c3e50;
+            }
+
+            .input-field input {
+                width: 100%;
+                margin-top: 5px;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 1rem;
+                background-color: #f5f5f5;
+                transition: box-shadow 0.3s;
+            }
+
+            .input-field input:focus {
+                outline: none;
+                box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+            }
+
+            #questions-container {
+                max-height: 300px;
+                overflow-y: auto;
+                margin-bottom: 20px;
+                padding-right: 15px;
+            }
+
+            .lie-answer {
+                color: #e74c3c;
+                font-weight: bold;
+            }
+
+            .row {
+                display: flex;
+                justify-content: space-around;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>2 Truths 1 Lie</h1>
+            <button
+                id="start-button"
+                class="btn btn-primary mb-4"
+                onclick="showInputSection()">
+                Start Game
+            </button>
+            <div id="input-section" style="display: none">
+                <div id="questions-container"></div>
+                <button class="btn btn-success mt-2" onclick="addQuestion()">
+                    Tambah Pertanyaan
+                </button>
+                <button class="btn btn-success mt-2" onclick="startGame()">
+                    Start Game
+                </button>
+            </div>
+            <div id="question" class="my-4"></div>
+            <div id="answers" class="row" style="display: none">
+                <div class="card col-md-3 mx-2 p-2" onclick="selectCard(this)"></div>
+                <div class="card col-md-3 mx-2 p-2" onclick="selectCard(this)"></div>
+                <div class="card col-md-3 mx-2 p-2" onclick="selectCard(this)"></div>
+            </div>
+            <div id="result" class="my-4"></div>
+            <button
+                id="game-button"
+                class="btn btn-info"
+                onclick="nextQuestion()"
+                style="display: none">
+                Next
+            </button>
+            <button
+                id="restart-button"
+                class="btn btn-danger mt-2"
+                onclick="restartGame()"
+                style="display: none">
+                Restart Game
+            </button>
+        </div>
+
+        <script>
+            let currentQuestionIndex = 0;
+            let questions = [];
+
+            function showInputSection() {
+                document
+                    .getElementById("start-button")
+                    .style
+                    .display = "none";
+                document
+                    .getElementById("input-section")
+                    .style
+                    .display = "block";
+
+                const questionsContainer = document.getElementById("questions-container");
+                questionsContainer.innerHTML = "";
+
+                for (let i = 0; i < 5; i++) {
+                    const questionContainer = document.createElement("div");
+                    questionContainer
+                        .classList
+                        .add("input-field");
+                    questionContainer.innerHTML = `
+                    <label for="question-${i}">Enter your question ${
+                    i + 1}:</label>
+                    <input type="text" id="question-${i}" class="form-control">
+                    <label for="truth1-${i}">Truth 1:</label>
+                    <input type="text" id="truth1-${i}" class="form-control">
+                    <label for="truth2-${i}">Truth 2:</label>
+                    <input type="text" id="truth2-${i}" class="form-control">
+                    <label for="lie-${i}">Lie:</label>
+                    <input type="text" id="lie-${i}" class="form-control">
+                    <hr>`;
+                    questionsContainer.appendChild(questionContainer);
+                }
+
+                document
+                    .getElementById("restart-button")
+                    .style
+                    .display = "none"; // Hide restart button
+                document
+                    .getElementById("game-button")
+                    .style
+                    .display = "none"; // Hide next button
+                document
+                    .getElementById("answers")
+                    .style
+                    .display = "none"; // Hide answers
+                document
+                    .getElementById("result")
+                    .innerText = ""; // Clear result message
+                currentQuestionIndex = 0; // Reset question index
+                questions = []; // Clear questions array
+            }
+
+            function addQuestion() {
+                const questionsContainer = document.getElementById("questions-container");
+                const questionIndex = questionsContainer.children.length; // Mendapatkan jumlah pertanyaan yang ada
+
+                if (questionIndex >= 10) {
+                    // Maksimal pertanyaan adalah 10
+                    alert("Anda sudah mencapai batas maksimal pertanyaan.");
+                    return;
+                }
+
+                const questionContainer = document.createElement("div");
+                questionContainer
+                    .classList
+                    .add("input-field");
+                questionContainer.innerHTML = `
+                <label for="question-${questionIndex}">Enter your question ${
+                questionIndex + 1}:</label>
+                <input type="text" id="question-${questionIndex}" class="form-control">
+                <label for="truth1-${questionIndex}">Truth 1:</label>
+                <input type="text" id="truth1-${questionIndex}" class="form-control">
+                <label for="truth2-${questionIndex}">Truth 2:</label>
+                <input type="text" id="truth2-${questionIndex}" class="form-control">
+                <label for="lie-${questionIndex}">Lie:</label>
+                <input type="text" id="lie-${questionIndex}" class="form-control">
+                <hr>`;
+
+                questionsContainer.appendChild(questionContainer);
+            }
+
+            function startGame() {
+                questions = []; // Reset questions array
+                currentQuestionIndex = 0; // Reset current question index
+
+                const questionsContainer = document.getElementById("questions-container");
+                const questionInputs = questionsContainer.querySelectorAll(".input-field");
+
+                questionInputs.forEach((questionInput, index) => {
+                    const question = questionInput
+                        .querySelector(`#question-${index}`)
+                        .value;
+                    const truth1 = questionInput
+                        .querySelector(`#truth1-${index}`)
+                        .value;
+                    const truth2 = questionInput
+                        .querySelector(`#truth2-${index}`)
+                        .value;
+                    const lie = questionInput
+                        .querySelector(`#lie-${index}`)
+                        .value;
+
+                    if (!question || !truth1 || !truth2 || !lie) {
+                        alert("Please fill out all fields.");
+                        questions = []; // Clear questions array
+                        return;
+                    }
+
+                    questions.push({
+                        question,
+                        truths: [
+                            truth1, truth2
+                        ],
+                        lie
+                    });
+                });
+
+                if (questions.length > 0) {
+                    document
+                        .getElementById("input-section")
+                        .style
+                        .display = "none";
+                    document
+                        .getElementById("answers")
+                        .style
+                        .display = "flex";
+
+                    showQuestion();
+                }
+            }
+
+            function showQuestion() {
+                const currentQuestion = questions[currentQuestionIndex];
+                document
+                    .getElementById("question")
+                    .innerText = currentQuestion.question;
+
+                const answersDiv = document.getElementById("answers");
+                const cards = answersDiv.getElementsByClassName("card");
+
+                // Shuffle answers (truths and lie)
+                const answers = [
+                    ...currentQuestion.truths,
+                    currentQuestion.lie
+                ];
+                shuffleArray(answers);
+
+                for (let i = 0; i < cards.length; i++) {
+                    cards[i].innerText = answers[i];
+                    cards[i]
+                        .classList
+                        .remove("disabled");
+                }
+
+                // Determine which buttons to display
+                const gameButton = document.getElementById("game-button");
+                const restartButton = document.getElementById("restart-button");
+
+                if (currentQuestionIndex < questions.length - 1) {
+                    gameButton.style.display = "inline-block"; // Show next button
+                    restartButton.style.display = "none"; // Hide restart button
+                } else {
+                    gameButton.style.display = "none"; // Hide next button
+                    restartButton.style.display = "inline-block"; // Show restart button
+                }
+            }
+
+            function selectCard(card) {
+                const selectedAnswer = card.innerText;
+                const currentQuestion = questions[currentQuestionIndex];
+
+                if (selectedAnswer === currentQuestion.lie) {
+                    document
+                        .getElementById("result")
+                        .innerText = "It's Truth!";
+                    document
+                        .getElementById("result")
+                        .style
+                        .color = "#2ecc71";
+                } else {
+                    document
+                        .getElementById("result")
+                        .innerText = "It's a Lie!";
+                    document
+                        .getElementById("result")
+                        .style
+                        .color = "#e74c3c";
+                }
+
+                disableCards();
+
+                // Check if it's the last question
+                if (currentQuestionIndex === questions.length - 1) {
+                    endGame(); // Show restart button instead of next
+                } else {
+                    document
+                        .getElementById("game-button")
+                        .style
+                        .display = "inline-block"; // Show next button
+                }
+            }
+
+            function disableCards() {
+                const cards = document
+                    .getElementById("answers")
+                    .getElementsByClassName("card");
+                for (let i = 0; i < cards.length; i++) {
+                    cards[i]
+                        .classList
+                        .add("disabled");
+                }
+            }
+
+            function nextQuestion() {
+                currentQuestionIndex++;
+
+                // Check if it's the last question
+                if (currentQuestionIndex === questions.length - 1) {
+                    endGame(); // Show restart button instead of next
+                } else {
+                    showQuestion();
+                    document
+                        .getElementById("result")
+                        .innerText = "";
+                }
+            }
+
+            function endGame() {
+                document
+                    .getElementById("answers")
+                    .style
+                    .display = "none";
+                document
+                    .getElementById("game-button")
+                    .style
+                    .display = "none"; // Hide next button
+                document
+                    .getElementById("restart-button")
+                    .style
+                    .display = "inline-block"; // Show restart button
+            }
+
+            function restartGame() {
+                document
+                    .getElementById("input-section")
+                    .style
+                    .display = "block";
+                document
+                    .getElementById("restart-button")
+                    .style
+                    .display = "none";
+                document
+                    .getElementById("result")
+                    .innerText = "";
+                currentQuestionIndex = 0;
+                questions = [];
+
+                // Clear questions container
+                const questionsContainer = document.getElementById("questions-container");
+                questionsContainer.innerHTML = "";
+
+                // Show input section again
+                showInputSection();
+            }
+
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [
+                        array[i], array[j]
+                    ] = [
+                        array[j], array[i]
+                    ];
+                }
+            }
+        </script>
+    </body>
+</html>
